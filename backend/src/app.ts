@@ -6,6 +6,8 @@ import compression from 'compression';
 import hpp from 'hpp';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { projectRouter } from './modules/projects/project.routes.js';
+import { errorHandler } from './middleware/error-handler.js';
 
 /*
  * Convierte middlewares externos al tipo
@@ -90,6 +92,9 @@ export const createApp = (): Application => {
     /*  
     * Routing
     */
+    app.use('/api/projects', projectRouter)
+
+    app.use(errorHandler)
 
     const notFoundHandler: RequestHandler = (_req, res): void => {
         res.status(404).json({
@@ -99,20 +104,6 @@ export const createApp = (): Application => {
     };
 
     app.use(notFoundHandler);
-
-    const errorHandler: ErrorRequestHandler = (error: unknown, _req, res, _next): void => {
-        console.error(error);
-        const isProduction = enviroment.NODE_ENV === 'production';
-
-        const errorMessage = error instanceof Error ? error.message : 'Error interno del servidor';
-
-        res.status(500).json({
-            status: 'error',
-            msg: isProduction ? 'Error interno del servidor' : errorMessage,
-        });
-    };
-
-    app.use(errorHandler);
 
     return app;
 }

@@ -69,5 +69,39 @@ export class ProjectService {
         );
 
         const updateProject = await this.projectRepository.update(id, data);
+
+        if(!updateProject){
+            throw new AppError(
+                404,
+                'PROJECT_NOT_FOUND',
+                'El proyecto no existe'
+            );
+        }
+
+        return updateProject;
+    }
+
+    async delete(id: string){
+        const project = await this.projectRepository.findbyId(id);
+
+        if(!project){
+            throw new AppError(
+                404,
+                'PROJECT_NOT_FOUND',
+                'El proyecto no existe'
+            );
+        }
+
+        const deleteProject = await this.projectRepository.delete(id);
+
+        if(!deleteProject){
+            throw new AppError(
+                404,
+                'PROJECT_NOT_FOUND',
+                'El proyecto no existe'
+            );
+        }
+
+        return deleteProject;
     }
 }
