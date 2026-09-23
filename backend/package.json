@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,9 +8,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "nodemon --watch src --ext ts,js,json --exec tsx src/server.ts",
-    "migration": "npx drizzle-kit generate --config=src/drizzle.config.ts",
-    "apply:migration": "npx drizzle-kit migrate --config=src/drizzle.config.ts",
-    "db:generate": "npx drizzle-kit generate --config=src/drizzle.config.ts",
+    "migration": "drizzle-kit generate --config=src/drizzle.config.ts",
+    "apply:migration": "drizzle-kit migrate --config=src/drizzle.config.ts",
+    "db:generate": "drizzle-kit generate --config=src/drizzle.config.ts",
     "seed": "tsx src/config/drizzle/seed.ts"
   },
   "keywords": [],
