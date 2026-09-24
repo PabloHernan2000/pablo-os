@@ -4,6 +4,7 @@ interface Enviroment {
     NODE_ENV: string;
     DATABASE_URL: string;
     FRONTEND_URL: string;
+    JWT_ACCESS_SECRET: string;
 }
 
 export const enviroment: Enviroment = {
@@ -12,4 +13,5 @@ export const enviroment: Enviroment = {
     NODE_ENV: process.env.NODE_ENV ?? '',
     DATABASE_URL: process.env.DATABASE_URL ?? '',
     FRONTEND_URL: process.env.FRONTEND_URL ?? '',
+    JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET ?? '',
 }

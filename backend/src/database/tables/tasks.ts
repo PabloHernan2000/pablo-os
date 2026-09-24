@@ -10,6 +10,7 @@ import {
     varchar,
 } from 'drizzle-orm/pg-core'
 import { projects } from './projects.js'
+import { users } from './users.js'
 
 export const taskStatusEnum = pgEnum('task_status', [
     'todo',
@@ -62,12 +63,18 @@ export const tasks = pgTable(
             withTimezone: true,
             mode: 'date',
         }).notNull().defaultNow(),
+        userId: uuid('user_id')
+            .notNull()
+            .references(() => users.id, {
+                onDelete: 'cascade',
+            }),
     },
     (table) => [
         index('tasks_project_id_idx').on(table.projectId),
         index('tasks_status_idx').on(table.status),
         index('tasks_priority_idx').on(table.priority),
         index('tasks_due_date_idx').on(table.dueDate),
+        index('tasks_user_id_idx').on(table.userId),
     ],
 )
 

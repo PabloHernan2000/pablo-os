@@ -4,3 +4,6 @@ export * from './tables/tasks.js'
 export * from './tables/learning-areas.js'
 export * from './tables/learning-topics.js'
 export * from './tables/study-sessions.js'
+
+export * from './tables/users.js'
+export * from './tables/refresh-tokens.js'

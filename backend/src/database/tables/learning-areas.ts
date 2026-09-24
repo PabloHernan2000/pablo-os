@@ -6,6 +6,7 @@ import {
     uuid,
     varchar,
 } from 'drizzle-orm/pg-core'
+import { users } from './users.js'
 
 export const learningAreas = pgTable(
     'learning_areas',
@@ -21,9 +22,15 @@ export const learningAreas = pgTable(
             withTimezone: true,
             mode: 'date',
         }).notNull().defaultNow(),
+        userId: uuid('user_id')
+            .notNull()
+            .references(() => users.id, {
+                onDelete: 'cascade',
+            }),
     },
     (table) => [
         index('learning_areas_name_idx').on(table.name),
+        index('learning_areas_user_id_idx').on(table.userId,),
     ],
 )
 

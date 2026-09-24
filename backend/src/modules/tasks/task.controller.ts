@@ -5,17 +5,18 @@ import type {
 
 import { AppError } from '../../shared/errors/app-error.js'
 
-import { ProjectService } from './project.service.js'
-
 import {
-    createProjectSchema,
-    projectIdParamsSchema,
-    updateProjectSchema,
-} from './project.schema.js'
+    createTaskSchema,
+    taskFiltersSchema,
+    taskIdParamsSchema,
+    updateTaskSchema,
+} from './task.schema.js'
 
-export class ProjectController {
+import { TaskService } from './task.service.js'
+
+export class TaskController {
     constructor(
-        private readonly projectService: ProjectService,
+        private readonly taskService: TaskService,
     ) { }
 
     findAll = async (
@@ -24,14 +25,20 @@ export class ProjectController {
     ) => {
         const userId = this.getUserId(req)
 
-        const projects =
-            await this.projectService.findAll(
+        const filters =
+            taskFiltersSchema.parse(
+                req.query,
+            )
+
+        const tasks =
+            await this.taskService.findAll(
                 userId,
+                filters,
             )
 
         return res.status(200).json({
             success: true,
-            data: projects,
+            data: tasks,
         })
     }
 
@@ -42,19 +49,19 @@ export class ProjectController {
         const userId = this.getUserId(req)
 
         const { id } =
-            projectIdParamsSchema.parse(
+            taskIdParamsSchema.parse(
                 req.params,
             )
 
-        const project =
-            await this.projectService.findById(
+        const task =
+            await this.taskService.findById(
                 id,
                 userId,
             )
 
         return res.status(200).json({
             success: true,
-            data: project,
+            data: task,
         })
     }
 
@@ -65,19 +72,19 @@ export class ProjectController {
         const userId = this.getUserId(req)
 
         const data =
-            createProjectSchema.parse(
+            createTaskSchema.parse(
                 req.body,
             )
 
-        const project =
-            await this.projectService.create(
+        const task =
+            await this.taskService.create(
                 userId,
                 data,
             )
 
         return res.status(201).json({
             success: true,
-            data: project,
+            data: task,
         })
     }
 
@@ -88,17 +95,17 @@ export class ProjectController {
         const userId = this.getUserId(req)
 
         const { id } =
-            projectIdParamsSchema.parse(
+            taskIdParamsSchema.parse(
                 req.params,
             )
 
         const data =
-            updateProjectSchema.parse(
+            updateTaskSchema.parse(
                 req.body,
             )
 
-        const project =
-            await this.projectService.update(
+        const task =
+            await this.taskService.update(
                 id,
                 userId,
                 data,
@@ -106,7 +113,53 @@ export class ProjectController {
 
         return res.status(200).json({
             success: true,
-            data: project,
+            data: task,
+        })
+    }
+
+    complete = async (
+        req: Request,
+        res: Response,
+    ) => {
+        const userId = this.getUserId(req)
+
+        const { id } =
+            taskIdParamsSchema.parse(
+                req.params,
+            )
+
+        const task =
+            await this.taskService.complete(
+                id,
+                userId,
+            )
+
+        return res.status(200).json({
+            success: true,
+            data: task,
+        })
+    }
+
+    reopen = async (
+        req: Request,
+        res: Response,
+    ) => {
+        const userId = this.getUserId(req)
+
+        const { id } =
+            taskIdParamsSchema.parse(
+                req.params,
+            )
+
+        const task =
+            await this.taskService.reopen(
+                id,
+                userId,
+            )
+
+        return res.status(200).json({
+            success: true,
+            data: task,
         })
     }
 
@@ -117,19 +170,19 @@ export class ProjectController {
         const userId = this.getUserId(req)
 
         const { id } =
-            projectIdParamsSchema.parse(
+            taskIdParamsSchema.parse(
                 req.params,
             )
 
-        const project =
-            await this.projectService.delete(
+        const task =
+            await this.taskService.delete(
                 id,
                 userId,
             )
 
         return res.status(200).json({
             success: true,
-            data: project,
+            data: task,
         })
     }
 

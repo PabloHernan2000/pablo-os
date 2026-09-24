@@ -8,6 +8,7 @@ import {
     uuid,
     varchar,
 } from 'drizzle-orm/pg-core'
+import { users } from './users.js'
 
 export const projectStatusEnum = pgEnum('project_status', [
     'idea',
@@ -30,10 +31,16 @@ export const projects = pgTable(
         targetDate: date('target_date'),
         createdAt: timestamp('created_at', { withTimezone: true, mode: 'date', }).notNull().defaultNow(),
         updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date', }).notNull().defaultNow(),
+        userId: uuid('user_id')
+            .notNull()
+            .references(() => users.id, {
+                onDelete: 'cascade',
+            }),
     },
     (table) => [
         index('projects_status_idx').on(table.status),
         index('projects_target_date_idx').on(table.targetDate),
+        index('projects_user_id_idx').on(table.userId),
     ],
 )
 

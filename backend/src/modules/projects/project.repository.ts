@@ -1,76 +1,310 @@
-import { Pool } from "pg";
-import type { CreateProjectInput, UpdateProjectInput } from "./project.types.js";
+import type { Pool } from 'pg'
+
+import type {
+    CreateProjectInput,
+    UpdateProjectInput,
+} from './project.types.js'
 
 export class ProjectRepository {
     constructor(
-        private readonly db: Pool
+        private readonly db: Pool,
     ) { }
 
-    async findAll() {
+    async findAll(userId: string) {
         const query = `
-        SELECT * FROM public.projects p
-        ORDER BY p.created_at DESC;
-        `;
+      SELECT
+        p.id,
+        p.name,
+        p.description,
+        p.status,
+        p.repository_url AS "repositoryUrl",
+        p.start_date AS "startDate",
+        p.target_date AS "targetDate",
+        p.created_at AS "createdAt",
+        p.updated_at AS "updatedAt",
 
-        const result = await this.db.query(query);
+        COUNT(t.id)::int AS "totalTasks",
 
-        return result.rows ?? [];
+        COUNT(t.id) FILTER (
+          WHERE t.status = 'done'
+        )::int AS "completedTasks",
+
+        CASE
+          WHEN COUNT(t.id) = 0 THEN 0
+          ELSE ROUND(
+            (
+              COUNT(t.id) FILTER (
+                WHERE t.status = 'done'
+              )::numeric
+              /
+              COUNT(t.id)::numeric
+            ) * 100
+          )::int
+        END AS "progress"
+
+      FROM projects p
+
+      LEFT JOIN tasks t
+        ON t.project_id = p.id
+        AND t.user_id = p.user_id
+
+      WHERE p.user_id = $1
+
+      GROUP BY p.id
+
+      ORDER BY p.created_at DESC
+    `
+
+        const result = await this.db.query(
+            query,
+            [userId],
+        )
+
+        return result.rows
     }
 
-    async findbyId(id: string) {
+    async findById(
+        id: string,
+        userId: string,
+    ) {
         const query = `
-        SELECT * FROM public.projects p
-        WHERE p.id = $1
-        LIMIT 1;
-        `;
+      SELECT
+        p.id,
+        p.name,
+        p.description,
+        p.status,
+        p.repository_url AS "repositoryUrl",
+        p.start_date AS "startDate",
+        p.target_date AS "targetDate",
+        p.created_at AS "createdAt",
+        p.updated_at AS "updatedAt",
 
-        const result = await this.db.query(query, [id]);
+        COUNT(t.id)::int AS "totalTasks",
 
-        return result.rows[0] ?? null;
+        COUNT(t.id) FILTER (
+          WHERE t.status = 'done'
+        )::int AS "completedTasks",
+
+        CASE
+          WHEN COUNT(t.id) = 0 THEN 0
+          ELSE ROUND(
+            (
+              COUNT(t.id) FILTER (
+                WHERE t.status = 'done'
+              )::numeric
+              /
+              COUNT(t.id)::numeric
+            ) * 100
+          )::int
+        END AS "progress"
+
+      FROM projects p
+
+      LEFT JOIN tasks t
+        ON t.project_id = p.id
+        AND t.user_id = p.user_id
+
+      WHERE
+        p.id = $1
+        AND p.user_id = $2
+
+      GROUP BY p.id
+
+      LIMIT 1
+    `
+
+        const result = await this.db.query(
+            query,
+            [
+                id,
+                userId,
+            ],
+        )
+
+        return result.rows[0] ?? null
     }
 
-    async create(data: CreateProjectInput) {
-        const { name, description, status, repositoryUrl, startDate, targetDate } = data;
+    async create(
+        userId: string,
+        data: CreateProjectInput,
+    ) {
         const query = `
-        INSERT INTO public.projects (name, description, status, repository_url, start_date, target_date)
-        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
-        `;
+      INSERT INTO projects (
+        user_id,
+        name,
+        description,
+        status,
+        repository_url,
+        start_date,
+        target_date
+      )
+      VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        $7
+      )
+      RETURNING
+        id,
+        name,
+        description,
+        status,
+        repository_url AS "repositoryUrl",
+        start_date AS "startDate",
+        target_date AS "targetDate",
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+    `
 
-        const result = await this.db.query(query, [name, description, status, repositoryUrl, startDate, targetDate]);
+        const values = [
+            userId,
+            data.name,
+            data.description ?? null,
+            data.status,
+            data.repositoryUrl ?? null,
+            data.startDate ?? null,
+            data.targetDate ?? null,
+        ]
 
-        return result.rows[0] ?? null;
+        const result = await this.db.query(
+            query,
+            values,
+        )
+
+        return result.rows[0] ?? null
     }
 
-    async update(id: string, data: UpdateProjectInput) {
-        const { name, description, status, repositoryUrl, startDate, targetDate } = data;
+    async update(
+        id: string,
+        userId: string,
+        data: UpdateProjectInput,
+    ) {
+        const fields: string[] = []
+        const values: unknown[] = []
+
+        if (data.name !== undefined) {
+            values.push(data.name)
+
+            fields.push(
+                `name = $${values.length}`,
+            )
+        }
+
+        if (data.description !== undefined) {
+            values.push(data.description)
+
+            fields.push(
+                `description = $${values.length}`,
+            )
+        }
+
+        if (data.status !== undefined) {
+            values.push(data.status)
+
+            fields.push(
+                `status = $${values.length}`,
+            )
+        }
+
+        if (data.repositoryUrl !== undefined) {
+            values.push(data.repositoryUrl)
+
+            fields.push(
+                `repository_url = $${values.length}`,
+            )
+        }
+
+        if (data.startDate !== undefined) {
+            values.push(data.startDate)
+
+            fields.push(
+                `start_date = $${values.length}`,
+            )
+        }
+
+        if (data.targetDate !== undefined) {
+            values.push(data.targetDate)
+
+            fields.push(
+                `target_date = $${values.length}`,
+            )
+        }
+
+        fields.push(
+            'updated_at = NOW()',
+        )
+
+        values.push(id)
+
+        const idPosition = values.length
+
+        values.push(userId)
+
+        const userIdPosition = values.length
+
         const query = `
-        UPDATE public.projects 
-        SET
-            name=$1, 
-            description=$2, 
-            status=$3, 
-            repository_url=$4, 
-            start_date=$5, 
-            target_date=$6
-        WHERE id = $7
-        RETURNING *
-        `;
+      UPDATE projects
+      SET
+        ${fields.join(', ')}
 
-        const result = await this.db.query(query, [name, description, status, repositoryUrl, startDate, targetDate, id]);
+      WHERE
+        id = $${idPosition}
+        AND user_id = $${userIdPosition}
 
-        return result.rows[0] ?? null;
+      RETURNING
+        id,
+        name,
+        description,
+        status,
+        repository_url AS "repositoryUrl",
+        start_date AS "startDate",
+        target_date AS "targetDate",
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+    `
+
+        const result = await this.db.query(
+            query,
+            values,
+        )
+
+        return result.rows[0] ?? null
     }
 
-    async delete(id: string) {
+    async delete(
+        id: string,
+        userId: string,
+    ) {
         const query = `
-        DELETE FROM public.projects
-        WHERE id = $1
-        RETURNING *
-        `;
+      DELETE FROM projects
 
-        const result = await this.db.query(query, [id]);
+      WHERE
+        id = $1
+        AND user_id = $2
 
-        return result ?? null;
+      RETURNING
+        id,
+        name,
+        description,
+        status,
+        repository_url AS "repositoryUrl",
+        start_date AS "startDate",
+        target_date AS "targetDate",
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+    `
+
+        const result = await this.db.query(
+            query,
+            [
+                id,
+                userId,
+            ],
+        )
+
+        return result.rows[0] ?? null
     }
-
 }

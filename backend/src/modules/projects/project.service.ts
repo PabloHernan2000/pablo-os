@@ -1,7 +1,11 @@
-import { AppError } from "../../shared/errors/app-error.js";
-import { ProjectRepository } from "./project.repository.js";
+import { AppError } from '../../shared/errors/app-error.js'
 
-import type { CreateProjectInput, UpdateProjectInput } from './project.types.js';
+import { ProjectRepository } from './project.repository.js'
+
+import type {
+    CreateProjectInput,
+    UpdateProjectInput,
+} from './project.types.js'
 
 export class ProjectService {
     constructor(
@@ -25,83 +29,126 @@ export class ProjectService {
         }
     }
 
-    async findAll() {
-        return await this.projectRepository.findAll();
+    findAll(userId: string) {
+        return this.projectRepository.findAll(userId)
     }
 
-    async findById(id: string) {
-        const project = await this.projectRepository.findbyId(id);
+    async findById(
+        id: string,
+        userId: string,
+    ) {
+        const project =
+            await this.projectRepository.findById(
+                id,
+                userId,
+            )
 
         if (!project) {
             throw new AppError(
                 404,
                 'PROJECT_NOT_FOUND',
-                'El proyecto no existe'
-            );
+                'El proyecto no existe',
+            )
         }
 
-        return project;
+        return project
     }
 
-    async create(data: CreateProjectInput) {
-        this.validateDates(data.startDate, data.targetDate);
+    async create(
+        userId: string,
+        data: CreateProjectInput,
+    ) {
+        this.validateDates(
+            data.startDate,
+            data.targetDate,
+        )
 
-        return this.projectRepository.create(data);
+        return this.projectRepository.create(
+            userId,
+            data,
+        )
     }
 
-    async update(id: string, data: UpdateProjectInput) {
-        const project = await this.projectRepository.findbyId(id);
+    async update(
+        id: string,
+        userId: string,
+        data: UpdateProjectInput,
+    ) {
+        const project =
+            await this.projectRepository.findById(
+                id,
+                userId,
+            )
 
         if (!project) {
             throw new AppError(
                 404,
                 'PROJECT_NOT_FOUND',
-                'El proyecto no existe'
-            );
+                'El proyecto no existe',
+            )
         }
 
-        const startDate = data.startDate ?? project.start_date;
-        const targetDate = data.targetDate ?? project.target_date;
+        const startDate =
+            data.startDate ?? project.startDate
+
+        const targetDate =
+            data.targetDate ?? project.targetDate
 
         this.validateDates(
             startDate,
-            targetDate
-        );
+            targetDate,
+        )
 
-        const updateProject = await this.projectRepository.update(id, data);
+        const updatedProject =
+            await this.projectRepository.update(
+                id,
+                userId,
+                data,
+            )
 
-        if(!updateProject){
+        if (!updatedProject) {
             throw new AppError(
                 404,
                 'PROJECT_NOT_FOUND',
-                'El proyecto no existe'
-            );
+                'El proyecto no existe',
+            )
         }
 
-        return updateProject;
+        return updatedProject
     }
 
-    async delete(id: string){
-        const project = await this.projectRepository.findbyId(id);
+    async delete(
+        id: string,
+        userId: string,
+    ) {
+        const project =
+            await this.projectRepository.findById(
+                id,
+                userId,
+            )
 
-        if(!project){
+        if (!project) {
             throw new AppError(
                 404,
                 'PROJECT_NOT_FOUND',
-                'El proyecto no existe'
-            );
+                'El proyecto no existe',
+            )
         }
 
-        const deleteProject = await this.projectRepository.delete(id);
+        const deletedProject =
+            await this.projectRepository.delete(
+                id,
+                userId,
+            )
 
-        if(!deleteProject){
+        if (!deletedProject) {
             throw new AppError(
                 404,
                 'PROJECT_NOT_FOUND',
-                'El proyecto no existe'
-            );
+                'El proyecto no existe',
+            )
         }
 
-        return deleteProject;
+        return deletedProject
     }
 }

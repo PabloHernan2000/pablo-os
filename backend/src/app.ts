@@ -8,6 +8,13 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { projectRouter } from './modules/projects/project.routes.js';
 import { errorHandler } from './middleware/error-handler.js';
+import { taskRouter } from './modules/tasks/task.routes.js';
+import { learningAreaRouter } from './modules/learning/areas/learning-area.routes.js';
+import { learningTopicRouter } from './modules/learning/topics/learning-topic.routes.js';
+import { studySessionRouter } from './modules/learning/study-session/study-session.routes.js';
+import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
+import { healthRoutes } from './modules/health/health.routes.js';
+import { authRouter } from './modules/auth/auth.routes.js';
 
 /*
  * Convierte middlewares externos al tipo
@@ -93,6 +100,13 @@ export const createApp = (): Application => {
     * Routing
     */
     app.use('/api/projects', projectRouter)
+    app.use('/api/tasks', taskRouter)
+    app.use('/api/learning/areas', learningAreaRouter,)
+    app.use('/api/learning/topics', learningTopicRouter,)
+    app.use('/api/study-sessions', studySessionRouter,)
+    app.use('/api/dashboard', dashboardRouter,)
+    app.use('/api/health', healthRoutes,)
+    app.use('/api/auth', authRouter,)
 
     app.use(errorHandler)
 

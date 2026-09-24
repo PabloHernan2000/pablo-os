@@ -1,19 +1,29 @@
-import { Router } from "express"
-import { ProjectController } from "./project.controller.js"
-import { ProjectRepository } from "./project.repository.js";
-import { pool } from "../../database/index.js";
-import { ProjectService } from "./project.service.js";
+import { Router } from 'express'
 
-const projectRepository = new ProjectRepository(pool);
-const projectService = new ProjectService(projectRepository);
-const projectController = new ProjectController(projectService);
+import { pool } from '../../database/index.js'
+import { authMiddleware } from '../auth/auth.middleware.js'
 
-const projectRouter: Router = Router();
+import { ProjectController } from './project.controller.js'
+import { ProjectRepository } from './project.repository.js'
+import { ProjectService } from './project.service.js'
+
+const projectRepository =
+    new ProjectRepository(pool)
+
+const projectService =
+    new ProjectService(projectRepository)
+
+const projectController =
+    new ProjectController(projectService)
+
+const projectRouter: Router = Router()
+
+projectRouter.use(authMiddleware)
 
 projectRouter.get(
     '/',
-    projectController.findAll
-);
+    projectController.findAll,
+)
 
 projectRouter.get(
     '/:id',
